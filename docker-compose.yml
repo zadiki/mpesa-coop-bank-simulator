@@ -1,0 +1,29 @@
+# Host networking (Linux): the container shares the host's network, so
+#  - it reaches your local MySQL at 127.0.0.1:3306
+#  - it can call back apps that listen only on 127.0.0.1 (e.g. bizwiz on :8000)
+#  - the simulator is served at http://localhost:8090
+services:
+  api:
+    build: .
+    image: mpesa-sim
+    network_mode: host
+    env_file: .env
+    environment:
+      RUN_MIGRATIONS: "1"
+      PHP_CLI_SERVER_WORKERS: "4"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1:8090/up') === false ? 1 : 0);"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  worker:
+    image: mpesa-sim
+    network_mode: host
+    env_file: .env
+    command: ["php", "artisan", "queue:work", "--sleep=1", "--tries=1", "--timeout=120"]
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
