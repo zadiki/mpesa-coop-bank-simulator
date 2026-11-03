@@ -133,7 +133,7 @@ class B2CService
                 ['Key' => 'TransactionAmount', 'Value' => (float) $transaction->amount],
                 ['Key' => 'TransactionReceipt', 'Value' => $transaction->receipt],
                 ['Key' => 'ReceiverPartyPublicName', 'Value' => $transaction->msisdn.' - '.$transaction->customer_name],
-                ['Key' => 'TransactionCompletedDateTime', 'Value' => now()->format('d.m.Y H:i:s')],
+                ['Key' => 'TransactionCompletedDateTime', 'Value' => now()->setTimezone(Daraja::TIMEZONE)->format('d.m.Y H:i:s')],
                 ['Key' => 'B2CUtilityAccountAvailableFunds', 'Value' => (float) $shortcode->balance],
                 ['Key' => 'B2CWorkingAccountAvailableFunds', 'Value' => 0.00],
                 ['Key' => 'B2CRecipientIsRegisteredCustomer', 'Value' => 'Y'],

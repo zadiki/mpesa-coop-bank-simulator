@@ -5,6 +5,8 @@ use App\Http\Controllers\Coop\CoopApiController;
 use App\Http\Controllers\Daraja\B2CController;
 use App\Http\Controllers\Daraja\C2BController;
 use App\Http\Controllers\Daraja\OAuthController;
+use App\Http\Controllers\Daraja\PullController;
+use App\Http\Controllers\Daraja\StkController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -18,6 +20,14 @@ Route::middleware('daraja.token')->prefix('mpesa')->group(function () {
 
     Route::post('/b2c/v1/paymentrequest', [B2CController::class, 'v1']);
     Route::post('/b2c/v3/paymentrequest', [B2CController::class, 'v3']);
+
+    Route::post('/stkpush/v1/processrequest', [StkController::class, 'push']);
+    Route::post('/stkpushquery/v1/query', [StkController::class, 'query']);
+});
+
+Route::middleware('daraja.token')->prefix('pulltransactions/v1')->group(function () {
+    Route::post('/register', [PullController::class, 'register']);
+    Route::post('/query', [PullController::class, 'query']);
 });
 
 /*

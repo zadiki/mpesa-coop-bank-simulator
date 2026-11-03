@@ -152,7 +152,7 @@ class C2BService
         return [
             'TransactionType' => $transaction->command_id === 'CustomerBuyGoodsOnline' ? 'Buy Goods' : 'Pay Bill',
             'TransID' => $transaction->receipt,
-            'TransTime' => $transaction->created_at->format('YmdHis'),
+            'TransTime' => $transaction->created_at->copy()->setTimezone(Daraja::TIMEZONE)->format('YmdHis'),
             'TransAmount' => Daraja::money($transaction->amount),
             'BusinessShortCode' => $transaction->shortcode,
             'BillRefNumber' => (string) $transaction->bill_ref_number,

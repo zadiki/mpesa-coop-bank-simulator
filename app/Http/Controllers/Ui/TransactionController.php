@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Transaction;
 use App\Services\B2CService;
 use App\Services\C2BService;
+use App\Services\StkService;
 use Illuminate\Http\Request;
 
 class TransactionController extends Controller
@@ -38,21 +39,29 @@ class TransactionController extends Controller
         return view('transactions.show', ['transaction' => $transaction->load('attempts')]);
     }
 
-    public function resend(Transaction $transaction, B2CService $b2c, C2BService $c2b)
+    public function resend(Transaction $transaction, B2CService $b2c, C2BService $c2b, StkService $stk)
     {
         if (! $transaction->callback_payload || $transaction->status === 'rejected') {
             return back()->with('error', 'This transaction has no callback to resend.');
         }
 
-        $transaction->type === 'b2c' ? $b2c->resend($transaction) : $c2b->resend($transaction);
+        match ($transaction->type) {
+            'b2c' => $b2c->resend($transaction),
+            'stk' => $stk->resend($transaction),
+            default => $c2b->resend($transaction),
+        };
 
         return back()->with('ok', 'Callback resent.');
     }
 
     /** Skip the remaining delay and run the callback flow right now. */
-    public function processNow(Transaction $transaction, B2CService $b2c, C2BService $c2b)
+    public function processNow(Transaction $transaction, B2CService $b2c, C2BService $c2b, StkService $stk)
     {
-        $transaction->type === 'b2c' ? $b2c->process($transaction) : $c2b->process($transaction);
+        match ($transaction->type) {
+            'b2c' => $b2c->process($transaction),
+            'stk' => $stk->process($transaction),
+            default => $c2b->process($transaction),
+        };
 
         return back()->with('ok', 'Processed.');
     }

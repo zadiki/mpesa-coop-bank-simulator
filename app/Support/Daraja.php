@@ -67,6 +67,9 @@ class Daraja
         ];
     }
 
+    /** Daraja writes its timestamps (TransTime, TransactionCompletedDateTime) in Kenyan time, not UTC. */
+    public const TIMEZONE = 'Africa/Nairobi';
+
     public static function money(float|string $amount): string
     {
         return number_format((float) $amount, 2, '.', '');

@@ -38,6 +38,9 @@ Without Docker: `php artisan migrate --seed`, then run `php artisan serve --port
 | POST | `/mpesa/c2b/v1/simulate` (and `v2`) | Customer payment → validation (if enabled) → confirmation |
 | POST | `/mpesa/b2c/v1/paymentrequest` | |
 | POST | `/mpesa/b2c/v3/paymentrequest` | `OriginatorConversationID` required |
+| POST | `/mpesa/stkpush/v1/processrequest` | STK prompt; result to `CallBackURL` |
+| POST | `/mpesa/stkpushquery/v1/query` | How a prompt ended |
+| POST | `/pulltransactions/v1/query` (and `/register`) | The shortcode's receipts for a period |
 
 Seeded defaults: consumer key `sim_consumer_key`, secret `sim_consumer_secret`, paybill `600000`,
 B2C shortcode `600981` (balance KES 1,000,000). Shortcodes a client uses for the first time are created automatically.

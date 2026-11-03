@@ -32,6 +32,29 @@ class Scenario
         'delayed' => ['label' => 'Confirmation after a long delay'],
     ];
 
+    /** STK push (Lipa na M-Pesa Online): what the customer does with the prompt on their phone. */
+    public const STK = [
+        'success' => ['code' => 0, 'desc' => 'The service request is processed successfully.', 'label' => 'Customer enters PIN: paid'],
+        'cancelled' => ['code' => 1032, 'desc' => 'Request cancelled by user', 'label' => 'Customer cancels the prompt'],
+        'timeout' => ['code' => 1037, 'desc' => 'DS timeout user cannot be reached', 'label' => 'Phone unreachable / no answer'],
+        'insufficient_funds' => ['code' => 1, 'desc' => 'The balance is insufficient for the transaction', 'label' => 'Not enough money in M-Pesa'],
+        'wrong_pin' => ['code' => 2001, 'desc' => 'The initiator information is invalid.', 'label' => 'Wrong PIN'],
+        'no_callback' => ['code' => 0, 'desc' => 'The service request is processed successfully.', 'label' => 'Paid, but no callback (query or statement only)'],
+        'duplicate' => ['code' => 0, 'desc' => 'The service request is processed successfully.', 'label' => 'Paid, callback sent twice'],
+        'delayed' => ['code' => 0, 'desc' => 'The service request is processed successfully.', 'label' => 'Paid, callback after a long delay'],
+    ];
+
+    /** STK phone numbers that always produce an outcome. */
+    public const MAGIC_STK_MSISDNS = [
+        '254700000201' => 'cancelled',
+        '254700000202' => 'timeout',
+        '254700000203' => 'insufficient_funds',
+        '254700000204' => 'wrong_pin',
+        '254700000205' => 'no_callback',
+        '254700000206' => 'duplicate',
+        '254700000207' => 'delayed',
+    ];
+
     /** Phone numbers that always trigger a given outcome. */
     public const MAGIC_MSISDNS = [
         '254700000001' => 'insufficient_funds',
@@ -48,6 +71,7 @@ class Scenario
     {
         return match ($type) {
             'b2c' => self::B2C,
+            'stk' => self::STK,
             'coop' => Coop::SCENARIOS,
             default => self::C2B,
         };
@@ -60,7 +84,7 @@ class Scenario
 
     public static function fromMsisdn(string $type, ?string $msisdn): ?string
     {
-        $outcome = self::MAGIC_MSISDNS[$msisdn] ?? null;
+        $outcome = ($type === 'stk' ? self::MAGIC_STK_MSISDNS : self::MAGIC_MSISDNS)[$msisdn] ?? null;
 
         return $outcome && self::exists($type, $outcome) ? $outcome : null;
     }

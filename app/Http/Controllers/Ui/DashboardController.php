@@ -37,13 +37,13 @@ class DashboardController extends Controller
             'forced' => ForcedOutcome::whereNull('consumed_at')->orderBy('id')->get(),
             'app' => DarajaApp::where('provider', 'mpesa')->first(),
             'coopApp' => DarajaApp::where('provider', 'coop')->first(),
-            'scenarios' => ['b2c' => Scenario::B2C, 'c2b' => Scenario::C2B, 'coop' => Scenario::all('coop')],
+            'scenarios' => ['b2c' => Scenario::B2C, 'c2b' => Scenario::C2B, 'stk' => Scenario::STK, 'coop' => Scenario::all('coop')],
         ]);
     }
 
     public function force(Request $request)
     {
-        $request->validate(['scenario' => ['required', 'regex:/^(c2b|b2c|coop):[a-z_]+$/']]);
+        $request->validate(['scenario' => ['required', 'regex:/^(c2b|b2c|stk|coop):[a-z_]+$/']]);
         [$type, $outcome] = explode(':', $request->input('scenario'));
         abort_unless(Scenario::exists($type, $outcome), 422, 'Unknown outcome');
         $data = ['type' => $type, 'outcome' => $outcome];

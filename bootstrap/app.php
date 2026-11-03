@@ -26,7 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $isDaraja = fn (Request $request) => $request->is('oauth/*', 'mpesa/*');
+        $isDaraja = fn (Request $request) => $request->is('oauth/*', 'mpesa/*', 'pulltransactions/*');
 
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $isDaraja($request) || $request->is('token', 'Enquiry/*', 'FundsTransfer/*', 'sim/catch/*') || $request->expectsJson(),

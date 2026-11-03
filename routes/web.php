@@ -21,6 +21,7 @@ Route::get('/c2b', [C2BPageController::class, 'index'])->name('c2b.index');
 Route::post('/c2b/pay', [C2BPageController::class, 'pay'])->name('c2b.pay');
 Route::post('/c2b/urls', [C2BPageController::class, 'register'])->name('c2b.register');
 Route::post('/c2b/shortcodes/{shortcode}/validation', [C2BPageController::class, 'toggleValidation'])->name('c2b.validation');
+Route::get('/c2b/statement', [C2BPageController::class, 'statement'])->name('c2b.statement');
 
 Route::get('/b2c', [B2CPageController::class, 'index'])->name('b2c.index');
 Route::post('/b2c/send', [B2CPageController::class, 'send'])->name('b2c.send');

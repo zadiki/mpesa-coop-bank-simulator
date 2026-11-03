@@ -331,6 +331,55 @@ A bad field returns HTTP 400 in Daraja's format:
 - The shortcode's balance is only reduced when the payout succeeds. A payout larger than the balance fails
   with `ResultCode 1` (insufficient funds).
 
+### 4.4 STK push (Lipa na M-Pesa Online)
+
+| Method | Path |
+|---|---|
+| POST | `/mpesa/stkpush/v1/processrequest` |
+| POST | `/mpesa/stkpushquery/v1/query` |
+
+`Password` must be `base64(BusinessShortCode + passkey + Timestamp)`. The simulator has no passkey to compare,
+so it checks only that the decoded value starts with the shortcode and ends with the timestamp. The
+synchronous answer carries `MerchantRequestID` and `CheckoutRequestID`. After the callback delay, the result
+goes to `CallBackURL`:
+
+```json
+{"Body": {"stkCallback": {"MerchantRequestID": "29115-34620561-1", "CheckoutRequestID": "ws_CO_0211202619371563",
+ "ResultCode": 0, "ResultDesc": "The service request is processed successfully.",
+ "CallbackMetadata": {"Item": [{"Name": "Amount", "Value": 700}, {"Name": "MpesaReceiptNumber", "Value": "TK09BJJCQV"},
+ {"Name": "TransactionDate", "Value": 20261102223718}, {"Name": "PhoneNumber", "Value": 254708374149}]}}}}
+```
+
+The query answers `500.001.1001 The transaction is being processed` until the customer has acted, and the
+`ResultCode` after that.
+
+What the customer does depends on the phone number prompted:
+
+| Phone | Outcome |
+|---|---|
+| 254700000201 | Cancels the prompt (`1032`) |
+| 254700000202 | Unreachable (`1037`) |
+| 254700000203 | Not enough money (`1`) |
+| 254700000204 | Wrong PIN (`2001`) |
+| 254700000205 | Pays, but **no callback**: only the query and the statement show it |
+| 254700000206 | Pays, callback sent twice |
+| 254700000207 | Pays, callback after a long delay |
+
+Any other number pays. The outcomes can also be forced from the Dashboard (STK group).
+
+### 4.5 Safaricom's records: Pull API and statements
+
+- `POST /pulltransactions/v1/register` and `POST /pulltransactions/v1/query` (`ShortCode`, `StartDate` and
+  `EndDate` as `YYYY-MM-DD HH:mm:ss` Kenyan time, `OffSetValue`). Returns the shortcode's paid-in C2B and STK
+  receipts as `{"ResponseCode": "1000", "Response": [[{transactionId, trxDate, msisdn, sender, transactiontype,
+  billreference, amount, organizationname}]]}`, up to 1,000 per page.
+- **C2B page → Download a statement:** a CSV in the M-Pesa org portal's layout (header block, then `Receipt No.,
+  Completion Time, Initiation Time, Details, Transaction Status, Paid In, Withdrawn, Balance, ..., Other Party
+  Info, Linked Transaction ID, A/C No.`). Upload it to TAP's M-Pesa reconciliation page.
+
+Both include payments whose callback never arrived (scenario "no callback"), which is how a client's
+reconciliation recovers them.
+
 ---
 
 ## 5. Co-op Bank

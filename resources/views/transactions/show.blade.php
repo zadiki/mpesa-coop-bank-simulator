@@ -36,9 +36,9 @@
                 <dt>Command</dt><dd>{{ $transaction->command_id }}</dd>
                 <dt>Phone</dt><dd class="mono">{{ $transaction->msisdn }} @if($transaction->customer_name)<span class="muted">({{ $transaction->customer_name }})</span>@endif</dd>
                 <dt>Shortcode</dt><dd class="mono">{{ $transaction->shortcode }}</dd>
-                @if ($transaction->bill_ref_number)<dt>{{ $transaction->type === 'c2b' ? 'Account' : 'Occasion' }}</dt><dd>{{ $transaction->bill_ref_number }}</dd>@endif
+                @if ($transaction->bill_ref_number)<dt>{{ $transaction->type === 'b2c' ? 'Occasion' : 'Account' }}</dt><dd>{{ $transaction->bill_ref_number }}</dd>@endif
                 <dt>Receipt</dt><dd class="mono">{{ $transaction->receipt ?? '—' }}</dd>
-                @if ($transaction->conversation_id)<dt>ConversationID</dt><dd class="mono">{{ $transaction->conversation_id }}</dd>@endif
+                @if ($transaction->conversation_id)<dt>{{ $transaction->type === 'stk' ? 'CheckoutRequestID' : 'ConversationID' }}</dt><dd class="mono">{{ $transaction->conversation_id }}</dd>@endif
                 <dt>OriginatorConversationID</dt><dd class="mono">{{ $transaction->originator_conversation_id }}</dd>
                 <dt>Result code</dt><dd class="mono">{{ $transaction->result_code ?? '—' }}</dd>
                 <dt>Scenario</dt><dd>{{ str_replace('_', ' ', $transaction->scenario) }}</dd>

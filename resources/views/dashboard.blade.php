@@ -27,6 +27,10 @@ POST /mpesa/c2b/v1/registerurl   (also v2)
 POST /mpesa/c2b/v1/simulate      (also v2)
 POST /mpesa/b2c/v1/paymentrequest
 POST /mpesa/b2c/v3/paymentrequest
+POST /mpesa/stkpush/v1/processrequest
+POST /mpesa/stkpushquery/v1/query
+POST /pulltransactions/v1/register
+POST /pulltransactions/v1/query
 
 POST /token
 POST /FundsTransfer/Internal/A2A_v3/3.0.0/

@@ -98,8 +98,35 @@
         </div>
     </div>
 
+    <div class="grid g2" style="margin-top:16px">
+        <div class="card">
+            <h2>Download a statement</h2>
+            <form method="get" action="{{ route('c2b.statement') }}" class="fields">
+                <div>
+                    <label for="st_code">Shortcode</label>
+                    <input id="st_code" name="shortcode" value="{{ $registrations->first()?->shortcode ?? '600000' }}" required>
+                </div>
+                <div><label for="st_from">From</label><input id="st_from" type="date" name="from" value="{{ today('Africa/Nairobi')->toDateString() }}" required></div>
+                <div><label for="st_to">To</label><input id="st_to" type="date" name="to" value="{{ today('Africa/Nairobi')->toDateString() }}" required></div>
+                <div style="align-self:end"><button type="submit" class="ghost">Download CSV</button></div>
+            </form>
+            <p class="muted" style="margin-bottom:0">Same layout as the M-Pesa org portal export: paid-in C2B and STK receipts.</p>
+        </div>
+        <div class="card">
+            <h2>STK prompt test phones</h2>
+            <table>
+                <thead><tr><th>Phone</th><th>What the customer does</th><th>ResultCode</th></tr></thead>
+                <tbody>
+                @foreach ($stkMagic as $msisdn => $outcome)
+                    <tr><td class="mono">{{ $msisdn }}</td><td>{{ $stkScenarios[$outcome]['label'] }}</td><td class="mono">{{ $stkScenarios[$outcome]['code'] }}</td></tr>
+                @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <div class="card" style="margin-top:16px">
-        <div class="row-between"><h2>Recent C2B</h2><a href="{{ route('transactions.index', ['type' => 'c2b']) }}">View all →</a></div>
+        <div class="row-between"><h2>Recent C2B and STK</h2><a href="{{ route('transactions.index') }}">View all →</a></div>
         @include('transactions._table')
     </div>
 @endsection

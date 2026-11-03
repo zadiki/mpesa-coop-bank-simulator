@@ -14,7 +14,7 @@
                 <label for="type">Type</label>
                 <select id="type" name="type">
                     <option value="">All</option>
-                    @foreach (['c2b' => 'C2B', 'b2c' => 'B2C'] as $v => $l)
+                    @foreach (['c2b' => 'C2B', 'stk' => 'STK', 'b2c' => 'B2C'] as $v => $l)
                         <option value="{{ $v }}" @selected(request('type') === $v)>{{ $l }}</option>
                     @endforeach
                 </select>
