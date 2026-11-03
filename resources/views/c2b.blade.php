@@ -108,9 +108,12 @@
                 </div>
                 <div><label for="st_from">From</label><input id="st_from" type="date" name="from" value="{{ today('Africa/Nairobi')->toDateString() }}" required></div>
                 <div><label for="st_to">To</label><input id="st_to" type="date" name="to" value="{{ today('Africa/Nairobi')->toDateString() }}" required></div>
-                <div style="align-self:end"><button type="submit" class="ghost">Download CSV</button></div>
+                <div style="align-self:end">
+                    <button type="submit" name="format" value="csv" class="ghost">Download CSV</button>
+                    <button type="submit" name="format" value="xlsx" class="ghost">Download Excel</button>
+                </div>
             </form>
-            <p class="muted" style="margin-bottom:0">Same layout as the M-Pesa org portal export: paid-in C2B and STK receipts.</p>
+            <p class="muted" style="margin-bottom:0">Same layout as the M-Pesa org portal export, as CSV or Excel (.xlsx): paid-in C2B and STK receipts.</p>
         </div>
         <div class="card">
             <h2>STK prompt test phones</h2>

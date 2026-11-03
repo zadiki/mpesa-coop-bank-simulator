@@ -373,9 +373,11 @@ Any other number pays. The outcomes can also be forced from the Dashboard (STK g
   `EndDate` as `YYYY-MM-DD HH:mm:ss` Kenyan time, `OffSetValue`). Returns the shortcode's paid-in C2B and STK
   receipts as `{"ResponseCode": "1000", "Response": [[{transactionId, trxDate, msisdn, sender, transactiontype,
   billreference, amount, organizationname}]]}`, up to 1,000 per page.
-- **C2B page → Download a statement:** a CSV in the M-Pesa org portal's layout (header block, then `Receipt No.,
+- **C2B page → Download a statement:** in the M-Pesa org portal's layout (header block, then `Receipt No.,
   Completion Time, Initiation Time, Details, Transaction Status, Paid In, Withdrawn, Balance, ..., Other Party
-  Info, Linked Transaction ID, A/C No.`). Upload it to TAP's M-Pesa reconciliation page.
+  Info, Linked Transaction ID, A/C No.`), as **CSV** or as **Excel** (`.xlsx`, times as date cells and amounts as
+  numbers, like the portal's Excel export). Directly: `/c2b/statement?shortcode=600000&from=2026-11-01&to=2026-11-03`
+  (add `&format=xlsx` for Excel). Upload either to TAP's M-Pesa reconciliation page.
 
 Both include payments whose callback never arrived (scenario "no callback"), which is how a client's
 reconciliation recovers them.
