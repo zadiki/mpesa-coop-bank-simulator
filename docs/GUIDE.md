@@ -384,6 +384,18 @@ reconciliation recovers them.
 
 ---
 
+### 4.6 Account Balance and B2B (sweeps and top-ups)
+
+Both are called with the organisation's initiator and answer at once with `ResponseCode: "0"` and a `ConversationID`;
+the result goes to `ResultURL` after the callback delay, with that `ConversationID`.
+
+| Endpoint | Body | Result |
+|---|---|---|
+| `POST /mpesa/accountbalance/v1/query` | `Initiator`, `SecurityCredential`, `CommandID: AccountBalance`, `PartyA` (shortcode), `IdentifierType: 4`, `Remarks`, `QueueTimeOutURL`, `ResultURL` | `ResultParameters.ResultParameter[AccountBalance]` = `Working Account\|KES\|...&Utility Account\|KES\|<balance>\|<balance>\|0.00\|0.00&...`: the shortcode's simulator balance is its Utility Account |
+| `POST /mpesa/b2b/v1/paymentrequest` | `Initiator`, `SecurityCredential`, `CommandID: BusinessPayBill`, `SenderIdentifierType: 4`, `RecieverIdentifierType: 4`, `Amount`, `PartyA`, `PartyB`, `AccountReference`, `Remarks`, `QueueTimeOutURL`, `ResultURL` | Moves `Amount` from PartyA to PartyB (credited when PartyB is a known shortcode), `TransactionID` = the receipt. Not enough on PartyA: `ResultCode 1`. An amount of exactly **1111**: `ResultCode 2001` (wrong initiator). |
+
+Both show on the Transactions page (types `balance` and `b2b`), where a result can be resent.
+
 ## 5. Co-op Bank
 
 Paths and request bodies are the same as Co-op's SIT environment (`openapi-sit.co-opbank.co.ke`), taken from
