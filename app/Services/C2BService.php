@@ -17,9 +17,15 @@ class C2BService
         private CallbackDispatcher $dispatcher,
     ) {}
 
+    /**
+     * Store the shortcode's URLs. Registering a validation URL turns validation on for the shortcode, so the next
+     * payment is validated there before it is confirmed (as when Safaricom has external validation on); registering
+     * without one turns it off. The C2B page can still switch it until the next registration.
+     */
     public function register(array $data): RegisteredUrl
     {
-        Shortcode::resolve((string) $data['ShortCode'], 'paybill');
+        $shortcode = Shortcode::resolve((string) $data['ShortCode'], 'paybill');
+        $shortcode->update(['validation_enabled' => filled($data['ValidationURL'] ?? null)]);
 
         return RegisteredUrl::updateOrCreate(
             ['shortcode' => (string) $data['ShortCode']],
