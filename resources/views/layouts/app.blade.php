@@ -60,7 +60,13 @@
         .b-pending { color: var(--warn); background: var(--warn-soft); }
         .b-failed, .b-rejected, .b-err, .b-closed, .b-blocked { color: var(--bad); background: var(--bad-soft); }
         .b-timeout, .b-partial, .b-dormant { color: var(--warn); background: var(--warn-soft); }
-        .b-no_callback { color: var(--idle); background: var(--idle-soft); }
+        .b-no_callback, .b-no_ipn, .b-not_configured { color: var(--idle); background: var(--idle-soft); }
+        .b-sent { color: var(--ok); background: var(--ok-soft); }
+        .tip { background: var(--info-soft); border-radius: 8px; padding: 10px 12px; margin: 0 0 16px; }
+        .guide h2 { margin-top: 0; }
+        .guide ol, .guide ul { margin: 6px 0 0; padding-left: 20px; }
+        .guide li { margin: 4px 0; line-height: 1.5; }
+        .guide li code, .tip code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
         .b-type { color: var(--info); background: var(--info-soft); text-transform: uppercase; }
         form.inline { display: inline; }
         label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; font-weight: 600; }

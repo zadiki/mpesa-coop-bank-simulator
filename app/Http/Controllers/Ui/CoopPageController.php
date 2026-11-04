@@ -4,13 +4,15 @@ namespace App\Http\Controllers\Ui;
 
 use App\Http\Controllers\Controller;
 use App\Models\BankAccount;
+use App\Models\CoopCollection;
 use App\Models\CoopTransfer;
 use App\Models\ForcedOutcome;
 use App\Services\Coop\BankLedger;
+use App\Services\Coop\CoopCollectionService;
 use App\Services\Coop\CoopTransferService;
-use App\Support\Coop;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 
 class CoopPageController extends Controller
 {
@@ -187,5 +189,100 @@ class CoopPageController extends Controller
         }
 
         return redirect()->route('coop.transfers.show', $transfer)->with('ok', 'Transfer accepted. The callback will fire shortly.');
+    }
+
+    public function updateIpn(Request $request, BankAccount $account)
+    {
+        $data = $request->validate([
+            'ipn_url' => ['nullable', 'url'],
+            'ipn_username' => ['nullable', 'string', 'max:100'],
+            'ipn_password' => ['nullable', 'string', 'max:200'],
+        ]);
+        // An empty password keeps the stored one, unless the username is cleared too.
+        if (($data['ipn_password'] ?? '') === '' && ($data['ipn_username'] ?? '') !== '') {
+            unset($data['ipn_password']);
+        }
+        $account->update($data);
+
+        return back()->with('ok', $account->ipn_url ? 'IPN address saved: every credit to this account is notified there.' : 'IPN turned off for this account.');
+    }
+
+    public function collections(Request $request)
+    {
+        $collections = CoopCollection::query()
+            ->with('account')
+            ->when($request->query('account'), fn ($q, $v) => $q->whereHas('account', fn ($a) => $a->where('account_number', $v)))
+            ->when($request->query('ipn'), fn ($q, $v) => $q->where('ipn_status', $v))
+            ->latest('id')->paginate(25)->withQueryString();
+
+        return view('coop.collections', [
+            'collections' => $collections,
+            'own' => BankAccount::where('is_own', true)->orderBy('account_number')->get(),
+            'payers' => BankAccount::where('is_own', false)->where('bank_code', BankAccount::COOP_BANK_CODE)->orderBy('account_name')->get(),
+            'forced' => ForcedOutcome::where('type', 'coop_ipn')->whereNull('consumed_at')->orderBy('id')->get(),
+        ]);
+    }
+
+    public function receive(Request $request, CoopCollectionService $service)
+    {
+        $data = $request->validate([
+            'account' => ['required', 'exists:bank_accounts,id'],
+            'channel' => ['required', 'in:'.implode(',', array_keys(CoopCollection::CHANNELS))],
+            'amount' => ['required', 'numeric', 'gt:0'],
+            'narration' => ['nullable', 'string', 'max:100'],
+            'payer_name' => ['nullable', 'string', 'max:100'],
+            'payer_account' => ['required_if:channel,ift,pesalink', 'nullable', 'string', 'max:30'],
+            'payer_bank_code' => ['required_if:channel,pesalink', 'nullable', 'string', 'max:6'],
+            'payer_phone' => ['required_if:channel,mpesa', 'nullable', 'regex:/^254(7|1)\d{8}$/'],
+        ]);
+
+        try {
+            $collection = $service->receive(BankAccount::findOrFail($data['account']), [
+                'channel' => $data['channel'],
+                'amount' => $data['amount'],
+                'narration' => $data['narration'] ?? null,
+                'payer_name' => $data['payer_name'] ?? null,
+                'payer_account' => in_array($data['channel'], ['ift', 'pesalink'], true) ? $data['payer_account'] : null,
+                'payer_bank_code' => $data['channel'] === 'pesalink' ? BankAccount::normalizeBankCode($data['payer_bank_code']) : null,
+                'payer_phone' => $data['channel'] === 'mpesa' ? $data['payer_phone'] : null,
+            ]);
+        } catch (InvalidArgumentException $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('coop.collections.show', $collection)->with('ok', 'Money received. The IPN goes out after the callback delay.');
+    }
+
+    public function showCollection(CoopCollection $collection)
+    {
+        $collection->load('account', 'line', 'transfer', 'attempts');
+
+        return view('coop.collection', compact('collection'));
+    }
+
+    public function sendIpnNow(CoopCollection $collection, CoopCollectionService $service)
+    {
+        $service->notify($collection);
+
+        return back()->with('ok', CoopCollection::IPN_STATUSES[$collection->refresh()->ipn_status]);
+    }
+
+    public function resendIpn(CoopCollection $collection, CoopCollectionService $service)
+    {
+        try {
+            $service->resend($collection);
+        } catch (InvalidArgumentException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('ok', 'IPN sent again.');
+    }
+
+    public function guide()
+    {
+        return view('coop.guide', [
+            'own' => BankAccount::where('is_own', true)->orderBy('account_number')->get(),
+            'baseUrl' => rtrim(config('app.url'), '/'),
+        ]);
     }
 }

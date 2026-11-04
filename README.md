@@ -137,6 +137,15 @@ destination `-1`/`-6`, limit `-7`, bank unreachable `-12`, partial success. Cont
 - **Settings**: charges per rail (posted as a separate debit line), and whether unknown recipient accounts are
   created automatically.
 
+**Collections and IPN.** Co-op Bank → **Collections & IPN** → **Receive money** makes a customer pay into an own
+account (from another Co-op account, PesaLink, M-Pesa or cash at a branch). The account is credited, and the
+payment notification (IPN) is POSTed to the account's IPN address (set on the account page, with optional Basic
+auth). Transfers into own accounts are notified the same way. Force "no IPN", "IPN twice" or "IPN late" from the
+same page. The IPN body is modelled on Co-op's; see `docs/GUIDE.md` §5.8.
+
+**Step-by-step:** Co-op Bank → **How to test** walks through IFT disbursements, PesaLink and M-Pesa payouts,
+callbacks, collections and IPN, balances and statements.
+
 **Where the formats come from.** The request bodies come from Co-op's SIT Postman collection. That collection
 has no sample responses, so the response and callback formats follow Co-op's published API docs. Of the
 codes, only `0`, `-1`, `-5` and `-8` appear in Co-op samples. The others are simulator-defined and live in

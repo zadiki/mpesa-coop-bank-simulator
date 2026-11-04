@@ -73,6 +73,7 @@ class Scenario
             'b2c' => self::B2C,
             'stk' => self::STK,
             'coop' => Coop::SCENARIOS,
+            'coop_ipn' => Coop::IPN_SCENARIOS,
             default => self::C2B,
         };
     }

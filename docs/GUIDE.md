@@ -709,6 +709,68 @@ curl -H "Authorization: Bearer $T" -H "Content-Type: application/json" \
 - An unknown account returns HTTP 400 `-1`. A dormant, closed or blocked account returns `-6`.
 - To test a name mismatch, change the account's name in the UI (Co-op → account → Account settings).
 
+### 5.8 Collections and payment notifications (IPN)
+
+A collection is money arriving in one of your own accounts. Co-op tells the account holder with an **IPN**
+(Instant Payment Notification): a POST to an address the bank sets up per account. The simulator does the same.
+
+**Set up:** Co-op Bank → Accounts → your collections account (seeded: `01100000000200`) → **Payment notifications
+(IPN)**. Enter your app's address, or `http://localhost:8090/sim/catch/coop/ipn` to just watch. Add a Basic auth
+username and password if your endpoint checks them.
+
+**Make a customer pay:** Co-op Bank → **Collections & IPN** → **Receive money**. Choose the account, how the
+customer pays, and the reference they type (e.g. a loan number):
+
+| How | What happens to the payer |
+|---|---|
+| Transfer from another Co-op account | A simulated Co-op account is debited (refused if it holds too little); any other number simply pays |
+| PesaLink from another bank | Arrives (with the payer's bank code) |
+| M-Pesa (paybill to bank) | Arrives from the payer's phone |
+| Cash deposit at a branch | Arrives |
+
+The account is credited at once (statement line). After the callback delay the IPN is POSTed:
+
+```json
+{
+  "MessageReference": "CL26310K3J9QZ",
+  "MessageDateTime": "2026-11-06T09:12:30.512Z",
+  "AcctNo": "01100000000200",
+  "AcctName": "TAP COLLECTIONS ACCOUNT",
+  "Currency": "KES",
+  "Amount": 1500,
+  "EventType": "CREDIT",
+  "TransactionId": "FT26310Q8ZK2M",
+  "TransactionDate": "2026-11-06T12:12:30",
+  "ValueDate": "2026-11-06",
+  "PaymentRef": "TL000123",
+  "Narration": "MPESA FROM JANE WANJIKU TL000123",
+  "CustMemoLine1": "JANE WANJIKU",
+  "CustMemoLine2": "254708374149",
+  "CustMemoLine3": "MPESA",
+  "BookedBalance": 1500,
+  "ClearedBalance": 1500,
+  "ExchangeRate": 1
+}
+```
+
+The fields are **modelled** on Co-op's IPN: the exact names come with Co-op's onboarding pack, so check them
+before going live (they are built in one place, `CoopCollectionService::payload()`). Your app should answer 2xx.
+
+**Transfers into your own accounts are collections too.** An IFT or PesaLink transfer that credits an own account
+(e.g. disbursement `01100000000100` → collections `01100000000200`) sends that account's IPN the same way, linked to
+the transfer.
+
+**Failures to try:** queue one on the Collections page (or the Dashboard, group *COOP IPN*):
+
+| Forced outcome | Your app must |
+|---|---|
+| Money arrives, but no IPN | Find the money on the statement |
+| IPN sent twice | Count it once |
+| IPN after a long delay | Cope with a late notice |
+
+Each collection's page shows the IPN body, every attempt with your app's reply, **Send IPN now** (skips the delay)
+and **Resend IPN** (as you would ask the bank to).
+
 ---
 
 ## 6. Testing failures
@@ -787,10 +849,13 @@ Open **http://localhost:8090**.
 | **C2B** | Pay as a customer, register URLs, turn validation on or off |
 | **B2C** | Send a payout, see the test phone numbers |
 | **Co-op Bank → Accounts** | Own accounts with available balance, recipient accounts, add an account, force the next outcome, test destinations |
-| **Co-op account page** | Balances, **failed transfers with reasons**, statement by date, deposit or withdraw, edit name, status, hold and overdraft |
+| **Co-op account page** | Balances, **IPN address and Basic auth** (own accounts), **failed transfers with reasons**, statement by date, deposit or withdraw, edit name, status, hold and overdraft |
 | **Co-op Bank → Transfers** | All transfers with status and result code; search by reference, account or phone |
 | **Co-op transfer page** | Destinations with their results, request, response, **what a status enquiry would return**, callbacks sent. **Process now** / **Resend callback** |
+| **Co-op Bank → How to test** | Step-by-step: connecting your app, IFT disbursements, PesaLink and M-Pesa payouts, callbacks, collections and IPN, balances and statements, with this simulator's own address and accounts filled in |
 | **Co-op Bank → Send money** | Send an internal, PesaLink or M-Pesa transfer through the same logic as the API |
+| **Co-op Bank → Collections & IPN** | Receive money into an own account (Co-op transfer, PesaLink, M-Pesa, cash), force the next IPN's outcome, list collections with their IPN status |
+| **Co-op collection page** | The credit, the IPN body, every IPN sent with your app's reply. **Send IPN now** / **Resend IPN** |
 | **Settings** | Callback delay, Co-op charges, auto-create recipients, API apps, shortcodes and balances |
 
 List pages refresh every 3 seconds. Pending transaction pages reload every 2 seconds until the callback goes out.

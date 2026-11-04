@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Http;
 use Throwable;
 
-/** POSTs a callback to a client URL and records exactly what happened (on a Transaction or CoopTransfer). */
+/** POSTs a callback to a client URL and records exactly what happened (on a Transaction, CoopTransfer or CoopCollection). */
 class CallbackDispatcher
 {
-    public function send(Model $owner, string $kind, string $url, array $payload): CallbackAttempt
+    /** @param  array{0: string, 1: string}|null  $basicAuth  username and password, for callbacks the client protects */
+    public function send(Model $owner, string $kind, string $url, array $payload, ?array $basicAuth = null): CallbackAttempt
     {
         $started = microtime(true);
         $status = null;
@@ -18,10 +19,13 @@ class CallbackDispatcher
         $error = null;
 
         try {
-            $response = Http::timeout(config('simulator.callback_timeout_seconds'))
+            $request = Http::timeout(config('simulator.callback_timeout_seconds'))
                 ->acceptJson()
-                ->withUserAgent('Daraja-Simulator/1.0')
-                ->post($url, $payload);
+                ->withUserAgent('Daraja-Simulator/1.0');
+            if ($basicAuth !== null) {
+                $request = $request->withBasicAuth($basicAuth[0], $basicAuth[1]);
+            }
+            $response = $request->post($url, $payload);
             $status = $response->status();
             $body = $response->body();
         } catch (Throwable $e) {

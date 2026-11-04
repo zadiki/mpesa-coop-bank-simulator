@@ -20,9 +20,17 @@ class BankAccount extends Model
 
     public const STATUSES = ['active', 'dormant', 'closed', 'blocked'];
 
+    /** Hidden from casual dumps: the password the IPN is sent with. */
+    protected $hidden = ['ipn_password'];
+
     public function lines(): HasMany
     {
         return $this->hasMany(BankTransaction::class);
+    }
+
+    public function collections(): HasMany
+    {
+        return $this->hasMany(CoopCollection::class);
     }
 
     /** What can actually be spent: booked balance minus holds plus overdraft. */
