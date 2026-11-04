@@ -19,6 +19,8 @@ class CallbackDispatcher
 
         try {
             $response = Http::timeout(config('simulator.callback_timeout_seconds'))
+                // A local app on Valet uses a local certificate this process does not trust.
+                ->withOptions(['verify' => ! app()->environment('local')])
                 ->acceptJson()
                 ->withUserAgent('Daraja-Simulator/1.0')
                 ->post($url, $payload);
