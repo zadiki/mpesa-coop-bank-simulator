@@ -35,7 +35,7 @@ Without Docker: `php artisan migrate --seed`, then run `php artisan serve --port
 |---|---|---|
 | GET  | `/oauth/v1/generate?grant_type=client_credentials` | Basic auth with consumer key/secret |
 | POST | `/mpesa/c2b/v1/registerurl` (and `v2`) | |
-| POST | `/mpesa/c2b/v1/simulate` (and `v2`) | Customer payment → validation (if enabled) → confirmation |
+| POST | `/mpesa/c2b/v1/simulate` (and `v2`) | Customer payment → validation (when a validation URL is registered) → confirmation |
 | POST | `/mpesa/b2c/v1/paymentrequest` | |
 | POST | `/mpesa/b2c/v3/paymentrequest` | `OriginatorConversationID` required |
 | POST | `/mpesa/stkpush/v1/processrequest` | STK prompt; result to `CallBackURL` |

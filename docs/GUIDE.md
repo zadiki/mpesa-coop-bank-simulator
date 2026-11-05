@@ -225,8 +225,10 @@ curl -H "Authorization: Bearer $T" -H "Content-Type: application/json" \
 
 **Callbacks that follow**
 
-1. **Validation.** This is only sent if validation is turned **on** for the shortcode (C2B page in the UI).
-   Daraja only calls the validation URL when Safaricom has enabled it, so it is off by default.
+1. **Validation.** Sent when validation is **on** for the shortcode. Registering URLs with a `ValidationURL`
+   turns it on, and registering without one turns it off, so the simulator calls both URLs you register. (On
+   real Daraja the validation URL is only called when Safaricom has enabled external validation.) The C2B page
+   can still switch it until the next registration.
    - Reply `{"ResultCode": "0", "ResultDesc": "Accepted"}` to accept the payment.
    - Reply with any other `ResultCode` (for example `C2B00012`) to reject it. The transaction becomes
      `rejected` and no confirmation is sent.

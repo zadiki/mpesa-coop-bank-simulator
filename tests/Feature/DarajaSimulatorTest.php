@@ -153,7 +153,8 @@ class DarajaSimulatorTest extends TestCase
             'ConfirmationURL' => 'https://client.test/confirm',
             'ValidationURL' => 'https://client.test/validate',
         ])->assertOk()->assertJsonPath('ResponseDescription', 'Success');
-        Shortcode::where('shortcode', '600111')->update(['validation_enabled' => true]);
+        // Registering a validation URL turns validation on: no switch to flip.
+        $this->assertTrue(Shortcode::where('shortcode', '600111')->value('validation_enabled'));
 
         $this->withToken($token)->postJson('/mpesa/c2b/v1/simulate', [
             'ShortCode' => '600111',
@@ -188,7 +189,6 @@ class DarajaSimulatorTest extends TestCase
             'ShortCode' => '600111', 'ResponseType' => 'Completed',
             'ConfirmationURL' => 'https://client.test/confirm', 'ValidationURL' => 'https://client.test/validate',
         ]);
-        Shortcode::where('shortcode', '600111')->update(['validation_enabled' => true]);
 
         $this->withToken($token)->postJson('/mpesa/c2b/v1/simulate', [
             'ShortCode' => '600111', 'CommandID' => 'CustomerPayBillOnline', 'Amount' => 250, 'Msisdn' => '254708374149',
@@ -199,6 +199,24 @@ class DarajaSimulatorTest extends TestCase
         $this->assertSame('rejected', $transaction->status);
         $this->assertSame('C2B00012', $transaction->result_code);
         $this->assertEquals(0, (float) Shortcode::where('shortcode', '600111')->value('balance'));
+    }
+
+    public function test_c2b_registered_without_a_validation_url_goes_straight_to_confirmation(): void
+    {
+        Http::fake(['client.test/*' => Http::response(['ResultCode' => 0])]);
+        $token = $this->token();
+        Shortcode::resolve('600111', 'paybill')->update(['validation_enabled' => true]);
+
+        $this->withToken($token)->postJson('/mpesa/c2b/v1/registerurl', [
+            'ShortCode' => '600111', 'ResponseType' => 'Completed', 'ConfirmationURL' => 'https://client.test/confirm',
+        ])->assertOk();
+        $this->assertFalse(Shortcode::where('shortcode', '600111')->value('validation_enabled'));
+
+        $this->withToken($token)->postJson('/mpesa/c2b/v1/simulate', [
+            'ShortCode' => '600111', 'CommandID' => 'CustomerPayBillOnline', 'Amount' => 100, 'Msisdn' => '254708374149',
+        ])->assertOk();
+
+        $this->assertSame(['https://client.test/confirm'], collect(Http::recorded())->map(fn ($pair) => $pair[0]->url())->all());
     }
 
     public function test_ui_pages_render(): void
