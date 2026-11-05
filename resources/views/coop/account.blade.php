@@ -16,6 +16,29 @@
         <div class="card stat"><div class="n">{{ number_format($account->od_limit, 2) }}</div><div class="l">Overdraft limit</div></div>
     </div>
 
+    @if ($account->is_own)
+        <div class="card" id="ipn" style="margin-top:16px">
+            <div class="row-between">
+                <h2>Payment notifications (IPN)</h2>
+                @if ($account->ipn_url)<span class="badge b-active">on</span>@else<span class="badge b-no_ipn">off</span>@endif
+            </div>
+            <p class="muted" style="margin-top:0">
+                Every credit to this account (a customer paying in, or a transfer from another of your accounts) is POSTed
+                here after the callback delay. For TAP, use the address TAP gives for Co-op notifications, or
+                <code>{{ rtrim(config('app.url'), '/') }}/sim/catch/coop/ipn</code> to just watch them.
+                <a href="{{ route('coop.collections') }}">Receive money</a> ·
+                <a href="{{ route('coop.guide') }}#collections">How to test collections</a>
+            </p>
+            <form method="post" action="{{ route('coop.accounts.ipn', $account) }}" class="fields">
+                @csrf @method('put')
+                <div class="wide"><label for="ipn_url">IPN address</label><input id="ipn_url" name="ipn_url" type="url" value="{{ old('ipn_url', $account->ipn_url) }}" placeholder="empty: no notifications"></div>
+                <div><label for="ipn_username">Basic auth username (optional)</label><input id="ipn_username" name="ipn_username" value="{{ old('ipn_username', $account->ipn_username) }}" autocomplete="off"></div>
+                <div><label for="ipn_password">Basic auth password</label><input id="ipn_password" name="ipn_password" type="password" placeholder="{{ $account->ipn_password ? 'saved; leave empty to keep it' : '' }}" autocomplete="new-password"></div>
+                <div><button type="submit">Save IPN settings</button></div>
+            </form>
+        </div>
+    @endif
+
     @if ($failed->isNotEmpty())
         <div class="card" style="margin-top:16px">
             <h2>Failed transfers from this account</h2>

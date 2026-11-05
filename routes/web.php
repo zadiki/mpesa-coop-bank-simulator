@@ -44,4 +44,11 @@ Route::prefix('coop')->name('coop.')->controller(CoopPageController::class)->gro
     Route::post('/transfers/{transfer}/resend', 'resend')->name('transfers.resend');
     Route::get('/send', 'sendForm')->name('send');
     Route::post('/send', 'send')->name('send.store');
+    Route::put('/accounts/{account}/ipn', 'updateIpn')->name('accounts.ipn');
+    Route::get('/collections', 'collections')->name('collections');
+    Route::post('/collections', 'receive')->name('collections.store');
+    Route::get('/collections/{collection}', 'showCollection')->name('collections.show');
+    Route::post('/collections/{collection}/send-now', 'sendIpnNow')->name('collections.send');
+    Route::post('/collections/{collection}/resend', 'resendIpn')->name('collections.resend');
+    Route::get('/guide', 'guide')->name('guide');
 });

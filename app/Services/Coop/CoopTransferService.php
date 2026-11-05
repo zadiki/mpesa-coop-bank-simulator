@@ -17,6 +17,7 @@ class CoopTransferService
     public function __construct(
         private BankLedger $ledger,
         private CallbackDispatcher $dispatcher,
+        private CoopCollectionService $collections,
     ) {}
 
     /**
@@ -237,7 +238,10 @@ class CoopTransferService
                 'account_name' => 'ACCOUNT '.$d->account_number,
             ]);
 
-        $this->ledger->post($account, 'C', (float) $d->amount, trim(($d->narration ?? 'TRANSFER').' FROM '.$transfer->source_account), $d->reference_number ?? $transfer->message_reference, $transfer->id);
+        $line = $this->ledger->post($account, 'C', (float) $d->amount, trim(($d->narration ?? 'TRANSFER').' FROM '.$transfer->source_account), $d->reference_number ?? $transfer->message_reference, $transfer->id);
+
+        // Money arriving in an own account is a collection: its holder gets the payment notification (IPN).
+        $this->collections->fromTransfer($account, $line, $transfer, $d->narration ?? $transfer->narration ?? '');
     }
 
     private function charge(string $rail): float

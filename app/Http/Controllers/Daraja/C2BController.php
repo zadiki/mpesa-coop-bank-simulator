@@ -21,6 +21,20 @@ class C2BController extends Controller
             'ValidationURL' => ['nullable', 'url'],
         ]);
 
+        // Like Daraja: a URL with one of these words in it is refused, naming the word.
+        foreach (['ValidationURL', 'ConfirmationURL'] as $field) {
+            $lower = strtolower((string) ($data[$field] ?? ''));
+            foreach (['m-pesa', 'mpesa', 'safaricom', 'exec', 'exe', 'cmd', 'sql', 'query'] as $word) {
+                if (str_contains($lower, $word)) {
+                    return response()->json([
+                        'requestId' => Daraja::originatorConversationId(),
+                        'errorCode' => '400.003.02',
+                        'errorMessage' => "Bad Request - Invalid {$field} - URL has the word ".strtoupper($word),
+                    ], 400);
+                }
+            }
+        }
+
         $this->c2b->register($data);
 
         return response()->json([

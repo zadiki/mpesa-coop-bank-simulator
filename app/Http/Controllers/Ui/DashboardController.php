@@ -37,20 +37,22 @@ class DashboardController extends Controller
             'forced' => ForcedOutcome::whereNull('consumed_at')->orderBy('id')->get(),
             'app' => DarajaApp::where('provider', 'mpesa')->first(),
             'coopApp' => DarajaApp::where('provider', 'coop')->first(),
-            'scenarios' => ['b2c' => Scenario::B2C, 'c2b' => Scenario::C2B, 'stk' => Scenario::STK, 'coop' => Scenario::all('coop')],
+            'scenarios' => ['b2c' => Scenario::B2C, 'c2b' => Scenario::C2B, 'stk' => Scenario::STK, 'coop' => Scenario::all('coop'), 'coop_ipn' => Scenario::all('coop_ipn')],
         ]);
     }
 
     public function force(Request $request)
     {
-        $request->validate(['scenario' => ['required', 'regex:/^(c2b|b2c|stk|coop):[a-z_]+$/']]);
+        $request->validate(['scenario' => ['required', 'regex:/^(c2b|b2c|stk|coop|coop_ipn):[a-z_]+$/']]);
         [$type, $outcome] = explode(':', $request->input('scenario'));
         abort_unless(Scenario::exists($type, $outcome), 422, 'Unknown outcome');
         $data = ['type' => $type, 'outcome' => $outcome];
 
         ForcedOutcome::create($data);
 
-        return back()->with('ok', 'The next '.strtoupper($data['type']).' transaction will be: '.Scenario::all($data['type'])[$data['outcome']]['label']);
+        $what = $data['type'] === 'coop_ipn' ? 'Co-op collection' : strtoupper($data['type']).' transaction';
+
+        return back()->with('ok', "The next {$what} will be: ".Scenario::all($data['type'])[$data['outcome']]['label']);
     }
 
     public function unforce(ForcedOutcome $forcedOutcome)

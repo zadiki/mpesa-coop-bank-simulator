@@ -21,6 +21,11 @@ class CallbackAttempt extends Model
         return $this->belongsTo(CoopTransfer::class);
     }
 
+    public function coopCollection(): BelongsTo
+    {
+        return $this->belongsTo(CoopCollection::class);
+    }
+
     public function succeeded(): bool
     {
         return $this->http_status !== null && $this->http_status >= 200 && $this->http_status < 300;

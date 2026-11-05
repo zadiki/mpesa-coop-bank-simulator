@@ -52,10 +52,10 @@ POST /Enquiry/Validation/IPSL/1.0.0/</pre>
                     <label for="scenario">Outcome</label>
                     <select id="scenario" name="scenario">
                         @foreach ($scenarios as $type => $list)
-                            <optgroup label="{{ strtoupper($type) }}">
+                            <optgroup label="{{ strtoupper(str_replace('_', ' ', $type)) }}">
                                 @foreach ($list as $key => $def)
                                     @continue($key === 'success')
-                                    <option value="{{ $type }}:{{ $key }}">{{ strtoupper($type) }}: {{ $def['label'] }}</option>
+                                    <option value="{{ $type }}:{{ $key }}">{{ strtoupper(str_replace('_', ' ', $type)) }}: {{ $def['label'] }}</option>
                                 @endforeach
                             </optgroup>
                         @endforeach

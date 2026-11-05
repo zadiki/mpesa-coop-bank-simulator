@@ -10,8 +10,8 @@ use App\Services\C2BService;
 use App\Services\PaybillStatement;
 use App\Support\Daraja;
 use App\Support\Scenario;
-use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class C2BPageController extends Controller
 {
@@ -61,7 +61,7 @@ class C2BPageController extends Controller
     {
         $shortcode->update(['validation_enabled' => ! $shortcode->validation_enabled]);
 
-        return back()->with('ok', "Validation ".($shortcode->validation_enabled ? 'enabled' : 'disabled')." for {$shortcode->shortcode}.");
+        return back()->with('ok', 'Validation '.($shortcode->validation_enabled ? 'enabled' : 'disabled')." for {$shortcode->shortcode}.");
     }
 
     /** The shortcode's statement as the M-Pesa org portal exports it (CSV), for a period of Kenyan days. */
@@ -71,14 +71,23 @@ class C2BPageController extends Controller
             'shortcode' => ['required', 'digits_between:5,7'],
             'from' => ['required', 'date_format:Y-m-d'],
             'to' => ['required', 'date_format:Y-m-d', 'after_or_equal:from'],
+            'format' => ['sometimes', 'in:csv,xlsx'],
         ]);
 
         $from = Carbon::parse($data['from'], Daraja::TIMEZONE)->startOfDay()->utc();
         $to = Carbon::parse($data['to'], Daraja::TIMEZONE)->endOfDay()->utc();
+        $name = "ORG_{$data['shortcode']}_Statement_{$data['from']}_{$data['to']}";
+
+        if (($data['format'] ?? 'csv') === 'xlsx') {
+            return response($statement->xlsx($data['shortcode'], $from, $to), 200, [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Content-Disposition' => "attachment; filename=\"{$name}.xlsx\"",
+            ]);
+        }
 
         return response($statement->csv($data['shortcode'], $from, $to), 200, [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"ORG_{$data['shortcode']}_Statement_{$data['from']}_{$data['to']}.csv\"",
+            'Content-Disposition' => "attachment; filename=\"{$name}.csv\"",
         ]);
     }
 }

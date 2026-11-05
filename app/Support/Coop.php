@@ -64,6 +64,14 @@ class Coop
         '254700000107' => 'delayed',
     ];
 
+    /** What happens to the payment notification (IPN) for money received into an own account. */
+    public const IPN_SCENARIOS = [
+        'success' => ['label' => 'IPN sent once'],
+        'no_ipn' => ['label' => 'Money arrives, but no IPN (statement only)'],
+        'duplicate_ipn' => ['label' => 'IPN sent twice'],
+        'delayed_ipn' => ['label' => 'IPN after a long delay'],
+    ];
+
     /** Outcomes that affect the whole request rather than one destination. */
     public const TRANSFER_LEVEL = ['insufficient_funds', 'partial_failure', 'no_callback', 'duplicate_callback', 'delayed', 'service_down'];
 

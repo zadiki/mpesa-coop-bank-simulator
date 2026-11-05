@@ -127,6 +127,18 @@ class DarajaSimulatorTest extends TestCase
         Http::assertSent(fn (Request $r) => $r['Result']['ResultCode'] === 1);
     }
 
+    public function test_urls_with_a_word_daraja_refuses_are_not_registered(): void
+    {
+        $this->withToken($this->token())->postJson('/mpesa/c2b/v2/registerurl', [
+            'ShortCode' => '600111',
+            'ResponseType' => 'Completed',
+            'ConfirmationURL' => 'https://client.test/confirm',
+            'ValidationURL' => 'https://client.test/webhooks/mpesa/validate',
+        ])->assertStatus(400)->assertJsonPath('errorMessage', 'Bad Request - Invalid ValidationURL - URL has the word MPESA');
+
+        $this->assertDatabaseMissing('registered_urls', ['shortcode' => '600111']);
+    }
+
     public function test_c2b_register_and_simulate_sends_validation_then_confirmation(): void
     {
         Http::fake([
